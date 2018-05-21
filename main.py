@@ -22,6 +22,7 @@ def create_db():
 				important integer,
 				finish integer,
 				parent integer);"""
+
 	cur.execute(table_create_sql)# Create table.
 	conn.close()# Close Connection.
 
@@ -30,6 +31,15 @@ def create_tree():
 	conn = sqlite3.connect("todolist.db")# Create DB file.
 	cur = conn.cursor()# Create cursor on Connection.
 
+	cur.execute('''SELECT * from todo where 1''')
+	rows = cur.fetchall()# data fetch on sentence.
+	i = 1
+	for row in rows:
+		while i != row[0]:
+			tree.append(0)
+			i+=1
+		tree.append(Node(row[4]))
+		i+=1
 
 	cur.execute(table_create_sql)# Create table.
 	conn.close()# Close Connection.
@@ -40,6 +50,7 @@ def add_item(_parent):
 	cur = conn.cursor()# Create cursor on Connection.
 	(_title, _due, _important) = 
 	cur.execute('''INSERT INTO todo (title, due, important, finish, parent) values (?, ?, ?, ?, ?)''', (_title, _due, int(_important), 0, _parent))
+	conn.commit()# DB commit
 	conn.close()# Close Connection.
 
 	tree[_parent].addChildren(len(tree))
@@ -50,6 +61,7 @@ def del_item(_parent):
 	conn = sqlite3.connect("todolist.db")# Create DB file.
 	cur = conn.cursor()# Create cursor on Connection.
 	(_title, _due, _important) = 
+	conn.commit()# DB commit
 	conn.close()# Close Connection.
 
 	calculate_list = []
@@ -60,17 +72,29 @@ def modify_item(_childId):
 	import sqlite3
 	conn = sqlite3.connect("todolist.db")# Create DB file.
 	cur = conn.cursor()# Create cursor on Connection.
-	cur.execute('''UPDATE todo SET what = ?, due = ?, finished = ? WHERE ID = ?''', (wh, du, Fi, Rid))
+
+	cur.execute('''UPDATE todo SET title = ?, due = ?, important = ?, finish = ? WHERE ID = ?''', (_tit, _due, _imp, _fin, _childId))
+	conn.commit()# DB commit
 	conn.close()# Close Connection.
 
 def move_item(_childId):
-	
+	x = int(input(""))
+	tree[_childId].setParent(x)
 
 def view_item(_parent):
 	import sqlite3
 	conn = sqlite3.connect("todolist.db")# Create DB file.
 	cur = conn.cursor()# Create cursor on Connection.
 
+	cur.execute('''SELECT * from todo where parent = ?''', (_parent,))
+	rows = cur.fetchall()# data fetch on sentence.
+	for row in rows:
+		print(row)
+
 	conn.close()# Close Connection.
 
+#main
 tree = [Node(-1)]
+create_db()
+
+view_item(2)
